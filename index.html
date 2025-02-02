@@ -39,7 +39,7 @@
       margin: 10px 0 5px;
       text-align: left;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
@@ -72,7 +72,7 @@
 <body>
   <div class="container">
     <h1>Seller Financing Calculator</h1>
-    <p class="subtitle">Calculate your annual loan payments easily</p>
+    <p class="subtitle">Calculate your loan payments easily</p>
 
     <label for="principal">Total Purchase Price (£):</label>
     <input type="number" id="principal" placeholder="e.g., 500000">
@@ -83,7 +83,25 @@
     <label for="years">Number of Years:</label>
     <input type="number" id="years" placeholder="e.g., 7">
 
-    <button onclick="calculatePayment()">Calculate Annual Payment</button>
+    <label for="balloon">Balloon Payment (£, optional):</label>
+    <input type="number" id="balloon" placeholder="e.g., 100000">
+
+    <label for="deferred">Deferred Payment Period (Months):</label>
+    <input type="number" id="deferred" placeholder="e.g., 6">
+
+    <label for="paymentType">Payment Type:</label>
+    <select id="paymentType">
+      <option value="amortized">Amortized (Standard Loan)</option>
+      <option value="interestOnly">Interest-Only</option>
+    </select>
+
+    <label for="netProfit">Net Profit (£, optional):</label>
+    <input type="number" id="netProfit" placeholder="e.g., 50000">
+
+    <label for="turnover">Turnover (£, optional):</label>
+    <input type="number" id="turnover" placeholder="e.g., 200000">
+
+    <button onclick="calculatePayment()">Calculate Payments</button>
 
     <div class="result" id="result"></div>
   </div>
@@ -91,20 +109,44 @@
   <script>
     function calculatePayment() {
       const P = parseFloat(document.getElementById('principal').value);
-      const r = parseFloat(document.getElementById('rate').value) / 100;
-      const n = parseFloat(document.getElementById('years').value);
+      const r = parseFloat(document.getElementById('rate').value) / 100 / 12; // Monthly interest rate
+      const n = parseFloat(document.getElementById('years').value) * 12; // Total months
+      const B = parseFloat(document.getElementById('balloon').value) || 0;
+      const deferred = parseFloat(document.getElementById('deferred').value) || 0;
+      const paymentType = document.getElementById('paymentType').value;
+      const netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
+      const turnover = parseFloat(document.getElementById('turnover').value) || 0;
 
-      if (isNaN(P) || isNaN(r) || isNaN(n) || P <= 0 || r <= 0 || n <= 0) {
+      if (isNaN(P) || isNaN(r) || isNaN(n) || P <= 0 || r < 0 || n <= 0) {
         alert("Please enter valid positive numbers for all fields.");
         return;
       }
 
-      const numerator = P * r * Math.pow(1 + r, n);
-      const denominator = Math.pow(1 + r, n) - 1;
-      const yearlyPayment = numerator / denominator;
+      let monthlyPayment = 0;
+      if (paymentType === "interestOnly") {
+        monthlyPayment = P * r; // Interest-only payments
+      } else {
+        if (B > 0) {
+          const numerator = (P - B) * r * Math.pow(1 + r, n);
+          const denominator = Math.pow(1 + r, n) - 1;
+          monthlyPayment = numerator / denominator;
+        } else {
+          const numerator = P * r * Math.pow(1 + r, n);
+          const denominator = Math.pow(1 + r, n) - 1;
+          monthlyPayment = numerator / denominator;
+        }
+      }
+      
+      const yearlyPayment = monthlyPayment * 12;
+      const deferredPayments = monthlyPayment * deferred;
 
-      document.getElementById('result').innerText = 
-        `Annual Payment: £${yearlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('result').innerHTML = 
+        `Monthly Payment: £${monthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+         Annual Payment: £${yearlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+         Deferred Payment Total (if applicable): £${deferredPayments.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+         Balloon Payment: £${B.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+         Net Profit: £${netProfit.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+         Turnover: £${turnover.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
   </script>
 </body>
