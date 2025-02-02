@@ -39,7 +39,7 @@
       margin: 10px 0 5px;
       text-align: left;
     }
-    input, select {
+    input {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
@@ -80,20 +80,17 @@
     <label for="rate">Annual Interest Rate (%):</label>
     <input type="number" id="rate" placeholder="e.g., 5">
 
-    <label for="years">Number of Years:</label>
+    <label for="years">Total Loan Term (Years):</label>
     <input type="number" id="years" placeholder="e.g., 7">
+
+    <label for="interestOnly">Interest-Only Period (Years):</label>
+    <input type="number" id="interestOnly" placeholder="e.g., 2">
+
+    <label for="deferred">Deferred Payment Period (Years):</label>
+    <input type="number" id="deferred" placeholder="e.g., 1">
 
     <label for="balloon">Balloon Payment (£, optional):</label>
     <input type="number" id="balloon" placeholder="e.g., 100000">
-
-    <label for="deferred">Deferred Payment Period (Months):</label>
-    <input type="number" id="deferred" placeholder="e.g., 6">
-
-    <label for="paymentType">Payment Type:</label>
-    <select id="paymentType">
-      <option value="amortized">Amortized (Standard Loan)</option>
-      <option value="interestOnly">Interest-Only</option>
-    </select>
 
     <label for="netProfit">Net Profit (£, optional):</label>
     <input type="number" id="netProfit" placeholder="e.g., 50000">
@@ -109,11 +106,11 @@
   <script>
     function calculatePayment() {
       const P = parseFloat(document.getElementById('principal').value);
-      const r = parseFloat(document.getElementById('rate').value) / 100 / 12; // Monthly interest rate
-      const n = parseFloat(document.getElementById('years').value) * 12; // Total months
+      const r = parseFloat(document.getElementById('rate').value) / 100 / 12;
+      const n = parseFloat(document.getElementById('years').value) * 12;
+      const IO = parseFloat(document.getElementById('interestOnly').value) * 12 || 0;
+      const deferred = parseFloat(document.getElementById('deferred').value) * 12 || 0;
       const B = parseFloat(document.getElementById('balloon').value) || 0;
-      const deferred = parseFloat(document.getElementById('deferred').value) || 0;
-      const paymentType = document.getElementById('paymentType').value;
       const netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
       const turnover = parseFloat(document.getElementById('turnover').value) || 0;
 
@@ -122,28 +119,40 @@
         return;
       }
 
+      let interestOnlyPayment = P * r;
       let monthlyPayment = 0;
-      if (paymentType === "interestOnly") {
-        monthlyPayment = P * r; // Interest-only payments
-      } else {
-        if (B > 0) {
-          const numerator = (P - B) * r * Math.pow(1 + r, n);
-          const denominator = Math.pow(1 + r, n) - 1;
-          monthlyPayment = numerator / denominator;
-        } else {
-          const numerator = P * r * Math.pow(1 + r, n);
-          const denominator = Math.pow(1 + r, n) - 1;
-          monthlyPayment = numerator / denominator;
-        }
+
+      // Deferment Period
+      let principalAfterDeferred = P;
+      let monthlyDeferredPayment = 0;
+
+      if (deferred > 0) {
+        principalAfterDeferred = P * Math.pow(1 + r, deferred);
+        monthlyDeferredPayment = 0;  // No payment during the deferred period
+      }
+
+      // Interest-Only Period
+      if (IO > 0) {
+        interestOnlyPayment = principalAfterDeferred * r; // Interest-only payment during interest-only period
+      }
+
+      // Amortized Payment after Interest-Only period
+      if (n - IO - deferred > 0) {
+        const principalAfterIO = principalAfterDeferred - B;
+        const numerator = principalAfterIO * r * Math.pow(1 + r, n - IO - deferred);
+        const denominator = Math.pow(1 + r, n - IO - deferred) - 1;
+        monthlyPayment = numerator / denominator;
       }
       
-      const yearlyPayment = monthlyPayment * 12;
-      const deferredPayments = monthlyPayment * deferred;
-
+      const yearlyPayment = (monthlyPayment + interestOnlyPayment) * 12;
+      const totalMonthlyPayment = (monthlyPayment + interestOnlyPayment);
+      
       document.getElementById('result').innerHTML = 
-        `Monthly Payment: £${monthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
+        `Deferred Period: ${deferred / 12} Years (No Payment)<br>
+         Interest-Only Payment: £${interestOnlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month for ${IO / 12} years<br>
+         Amortized Monthly Payment: £${monthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month after interest-only period<br>
+         Total Monthly Payment: £${totalMonthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Annual Payment: £${yearlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
-         Deferred Payment Total (if applicable): £${deferredPayments.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Balloon Payment: £${B.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Net Profit: £${netProfit.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Turnover: £${turnover.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
