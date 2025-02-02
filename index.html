@@ -15,33 +15,42 @@
       align-items: center;
       height: 100vh;
     }
-    .container {
-      max-width: 450px;
-      padding: 30px;
+    .wrapper {
+      display: flex;
+      gap: 30px;
+      max-width: 900px;
+      width: 100%;
       background: white;
+      padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
+    }
+    .calculator {
+      flex: 1;
+    }
+    .results {
+      flex: 1;
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     h1 {
-      font-size: 1.8em;
-      margin-bottom: 10px;
+      font-size: 1.5em;
       color: #333;
+      text-align: center;
     }
-    .subtitle {
-      font-size: 1em;
-      color: #666;
-      margin-bottom: 20px;
+    .input-group {
+      margin-bottom: 12px;
     }
     label {
       display: block;
       font-weight: bold;
-      margin: 10px 0 5px;
-      text-align: left;
+      margin-bottom: 5px;
     }
     input {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 1em;
@@ -62,45 +71,67 @@
       background: #0056b3;
     }
     .result {
-      margin-top: 20px;
-      font-size: 1.3em;
-      font-weight: bold;
+      font-size: 1.1em;
+      line-height: 1.5;
       color: #333;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Seller Financing Calculator</h1>
-    <p class="subtitle">Calculate your loan payments easily</p>
 
-    <label for="principal">Total Purchase Price (£):</label>
-    <input type="number" id="principal" placeholder="e.g., 500000">
+  <div class="wrapper">
+    <!-- Left: Calculator -->
+    <div class="calculator">
+      <h1>Seller Financing Calculator</h1>
 
-    <label for="rate">Annual Interest Rate (%):</label>
-    <input type="number" id="rate" placeholder="e.g., 5">
+      <div class="input-group">
+        <label for="principal">Total Purchase Price (£):</label>
+        <input type="number" id="principal" placeholder="e.g., 500000">
+      </div>
 
-    <label for="years">Total Loan Term (Years):</label>
-    <input type="number" id="years" placeholder="e.g., 7">
+      <div class="input-group">
+        <label for="rate">Annual Interest Rate (%):</label>
+        <input type="number" id="rate" placeholder="e.g., 5">
+      </div>
 
-    <label for="interestOnly">Interest-Only Period (Years):</label>
-    <input type="number" id="interestOnly" placeholder="e.g., 2">
+      <div class="input-group">
+        <label for="years">Total Loan Term (Years):</label>
+        <input type="number" id="years" placeholder="e.g., 7">
+      </div>
 
-    <label for="deferred">Deferred Payment Period (Years):</label>
-    <input type="number" id="deferred" placeholder="e.g., 1">
+      <div class="input-group">
+        <label for="interestOnly">Interest-Only Period (Years):</label>
+        <input type="number" id="interestOnly" placeholder="e.g., 2">
+      </div>
 
-    <label for="balloon">Balloon Payment (£, optional):</label>
-    <input type="number" id="balloon" placeholder="e.g., 100000">
+      <div class="input-group">
+        <label for="deferred">Deferred Payment Period (Years):</label>
+        <input type="number" id="deferred" placeholder="e.g., 1">
+      </div>
 
-    <label for="netProfit">Net Profit (£, optional):</label>
-    <input type="number" id="netProfit" placeholder="e.g., 50000">
+      <div class="input-group">
+        <label for="balloon">Balloon Payment (£, optional):</label>
+        <input type="number" id="balloon" placeholder="e.g., 100000">
+      </div>
 
-    <label for="turnover">Turnover (£, optional):</label>
-    <input type="number" id="turnover" placeholder="e.g., 200000">
+      <div class="input-group">
+        <label for="netProfit">Net Profit (£, optional):</label>
+        <input type="number" id="netProfit" placeholder="e.g., 50000">
+      </div>
 
-    <button onclick="calculatePayment()">Calculate Payments</button>
+      <div class="input-group">
+        <label for="turnover">Turnover (£, optional):</label>
+        <input type="number" id="turnover" placeholder="e.g., 200000">
+      </div>
 
-    <div class="result" id="result"></div>
+      <button onclick="calculatePayment()">Calculate Payments</button>
+    </div>
+
+    <!-- Right: Results -->
+    <div class="results">
+      <h1>Payment Breakdown</h1>
+      <div class="result" id="result">Enter values and click "Calculate" to see results.</div>
+    </div>
   </div>
 
   <script>
@@ -142,22 +173,24 @@
       }
       
       const totalMonthlyPayment = (monthlyPayment + interestOnlyPayment);
+      const yearlyPayment = totalMonthlyPayment * 12;
 
-      // Profit Calculation
-      const profitDuringInterestOnly = netProfit - interestOnlyPayment;
-      const profitDuringLoanRepayment = netProfit - totalMonthlyPayment;
+      // Profit per month
+      const profitPerMonth = turnover / 12 - totalMonthlyPayment;
 
-      document.getElementById('result').innerHTML = 
-        `Deferred Period: ${deferred / 12} Years (No Payment)<br>
-         Interest-Only Payment: £${interestOnlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month for ${IO / 12} years<br>
-         Profit During Interest-Only Period: £${profitDuringInterestOnly.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month<br>
-         Amortized Monthly Payment: £${monthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month after interest-only period<br>
-         Profit During Loan Repayment Period: £${profitDuringLoanRepayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month<br>
-         Total Monthly Payment: £${totalMonthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
-         Balloon Payment: £${B.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
-         Net Profit: £${netProfit.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
-         Turnover: £${turnover.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('result').innerHTML = `
+        <strong>Deferred Period:</strong> ${deferred / 12} Years (No Payment) <br><br>
+        <strong>Interest-Only Payment:</strong> £${interestOnlyPayment.toFixed(2)} per month for ${IO / 12} years<br><br>
+        <strong>Amortized Monthly Payment:</strong> £${monthlyPayment.toFixed(2)} per month after interest-only period<br><br>
+        <strong>Total Monthly Payment:</strong> £${totalMonthlyPayment.toFixed(2)}<br><br>
+        <strong>Annual Payment:</strong> £${yearlyPayment.toFixed(2)}<br><br>
+        <strong>Balloon Payment:</strong> £${B.toFixed(2)}<br><br>
+        <strong>Net Profit:</strong> £${netProfit.toFixed(2)}<br><br>
+        <strong>Turnover:</strong> £${turnover.toFixed(2)}<br><br>
+        <strong>Profit per Month (After Payments):</strong> £${profitPerMonth.toFixed(2)}
+      `;
     }
   </script>
+
 </body>
 </html>
