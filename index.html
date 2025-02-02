@@ -9,36 +9,22 @@
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
       margin: 0;
-      padding: 0;
+      padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
     }
     .wrapper {
       display: flex;
-      gap: 30px;
-      max-width: 900px;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 600px;
       width: 100%;
       background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    .calculator {
-      flex: 1;
-    }
-    .results {
-      flex: 1;
-      background: #f9f9f9;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      font-size: 1.5em;
-      color: #333;
-      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
     .input-group {
       margin-bottom: 12px;
@@ -50,39 +36,60 @@
     }
     input {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 1em;
     }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
     button {
-      width: 100%;
+      flex: 1;
       padding: 12px;
-      margin-top: 15px;
       background: #007bff;
       color: white;
       border: none;
       border-radius: 5px;
-      font-size: 1.1em;
+      font-size: 1em;
       cursor: pointer;
       transition: background 0.3s;
     }
     button:hover {
       background: #0056b3;
     }
-    .result {
-      font-size: 1.1em;
-      line-height: 1.5;
+    .reset-btn {
+      background: #dc3545;
+    }
+    .reset-btn:hover {
+      background: #a71d2a;
+    }
+    .results {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      font-size: 1em;
       color: #333;
+    }
+    @media (min-width: 768px) {
+      .wrapper {
+        flex-direction: row;
+        max-width: 900px;
+      }
+      .calculator, .results {
+        flex: 1;
+      }
     }
   </style>
 </head>
 <body>
 
   <div class="wrapper">
-    <!-- Left: Calculator -->
+    <!-- Calculator Section -->
     <div class="calculator">
-      <h1>Seller Financing Calculator</h1>
+      <h2>Seller Financing Calculator</h2>
 
       <div class="input-group">
         <label for="principal">Total Purchase Price (£):</label>
@@ -124,13 +131,16 @@
         <input type="number" id="turnover" placeholder="e.g., 200000">
       </div>
 
-      <button onclick="calculatePayment()">Calculate Payments</button>
+      <div class="btn-group">
+        <button onclick="calculatePayment()">Calculate</button>
+        <button class="reset-btn" onclick="resetForm()">Reset</button>
+      </div>
     </div>
 
-    <!-- Right: Results -->
+    <!-- Results Section -->
     <div class="results">
-      <h1>Payment Breakdown</h1>
-      <div class="result" id="result">Enter values and click "Calculate" to see results.</div>
+      <h2>Payment Breakdown</h2>
+      <div id="result">Enter values and click "Calculate" to see results.</div>
     </div>
   </div>
 
@@ -146,25 +156,25 @@
       const turnover = parseFloat(document.getElementById('turnover').value) || 0;
 
       if (isNaN(P) || isNaN(r) || isNaN(n) || P <= 0 || r < 0 || n <= 0) {
-        alert("Please enter valid positive numbers for all fields.");
+        alert("Please enter valid positive numbers.");
         return;
       }
 
       let interestOnlyPayment = P * r;
       let monthlyPayment = 0;
 
-      // Deferment Period
+      // Deferred Payment Calculation
       let principalAfterDeferred = P;
       if (deferred > 0) {
         principalAfterDeferred = P * Math.pow(1 + r, deferred);
       }
 
-      // Interest-Only Period
+      // Interest-Only Period Calculation
       if (IO > 0) {
         interestOnlyPayment = principalAfterDeferred * r;
       }
 
-      // Amortized Payment after Interest-Only period
+      // Amortized Payment Calculation
       if (n - IO - deferred > 0) {
         const principalAfterIO = principalAfterDeferred - B;
         const numerator = principalAfterIO * r * Math.pow(1 + r, n - IO - deferred);
@@ -174,8 +184,6 @@
       
       const totalMonthlyPayment = (monthlyPayment + interestOnlyPayment);
       const yearlyPayment = totalMonthlyPayment * 12;
-
-      // Profit per month
       const profitPerMonth = turnover / 12 - totalMonthlyPayment;
 
       document.getElementById('result').innerHTML = `
@@ -185,10 +193,13 @@
         <strong>Total Monthly Payment:</strong> £${totalMonthlyPayment.toFixed(2)}<br><br>
         <strong>Annual Payment:</strong> £${yearlyPayment.toFixed(2)}<br><br>
         <strong>Balloon Payment:</strong> £${B.toFixed(2)}<br><br>
-        <strong>Net Profit:</strong> £${netProfit.toFixed(2)}<br><br>
-        <strong>Turnover:</strong> £${turnover.toFixed(2)}<br><br>
         <strong>Profit per Month (After Payments):</strong> £${profitPerMonth.toFixed(2)}
       `;
+    }
+
+    function resetForm() {
+      document.querySelectorAll("input").forEach(input => input.value = "");
+      document.getElementById('result').innerHTML = "Enter values and click 'Calculate' to see results.";
     }
   </script>
 
