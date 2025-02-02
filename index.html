@@ -124,16 +124,13 @@
 
       // Deferment Period
       let principalAfterDeferred = P;
-      let monthlyDeferredPayment = 0;
-
       if (deferred > 0) {
         principalAfterDeferred = P * Math.pow(1 + r, deferred);
-        monthlyDeferredPayment = 0;  // No payment during the deferred period
       }
 
       // Interest-Only Period
       if (IO > 0) {
-        interestOnlyPayment = principalAfterDeferred * r; // Interest-only payment during interest-only period
+        interestOnlyPayment = principalAfterDeferred * r;
       }
 
       // Amortized Payment after Interest-Only period
@@ -144,15 +141,19 @@
         monthlyPayment = numerator / denominator;
       }
       
-      const yearlyPayment = (monthlyPayment + interestOnlyPayment) * 12;
       const totalMonthlyPayment = (monthlyPayment + interestOnlyPayment);
-      
+
+      // Profit Calculation
+      const profitDuringInterestOnly = netProfit - interestOnlyPayment;
+      const profitDuringLoanRepayment = netProfit - totalMonthlyPayment;
+
       document.getElementById('result').innerHTML = 
         `Deferred Period: ${deferred / 12} Years (No Payment)<br>
          Interest-Only Payment: £${interestOnlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month for ${IO / 12} years<br>
+         Profit During Interest-Only Period: £${profitDuringInterestOnly.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month<br>
          Amortized Monthly Payment: £${monthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month after interest-only period<br>
+         Profit During Loan Repayment Period: £${profitDuringLoanRepayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})} per month<br>
          Total Monthly Payment: £${totalMonthlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
-         Annual Payment: £${yearlyPayment.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Balloon Payment: £${B.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Net Profit: £${netProfit.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}<br>
          Turnover: £${turnover.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
